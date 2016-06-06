@@ -1,0 +1,176 @@
+<html>
+  <head>
+  <script   src="https://code.jquery.com/jquery-2.2.4.min.js"   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="   crossorigin="anonymous"></script>
+
+  <script type="text/javascript">
+
+  var score = 0;
+  	
+  	$(document).ready(function() {
+  var ltr = true;
+  var rtl = false;
+
+  setInterval(function() {
+    var offSet = $('.stackBox').offset();
+    var baseWidth = $('#base').width();
+    
+    if(ltr) {
+      if(offSet.left < baseWidth) {
+        $('.stackBox').css('left', offSet.left+50);
+      }else{
+        ltr = false;
+        rtl = true;
+      }  
+    }else if(rtl){
+      if(offSet.left > 0) {
+        $('.stackBox').css('left', offSet.left-50);
+      }else{
+        rtl = false;
+        ltr = true;
+      }
+    }
+  }, 100);
+  
+  $('body').click(function() {
+    var boxOffset = $('.stackBox').offset();
+    var boxWidth = $('.stackBox').width();
+    var baseOffset = $('#dropBase').offset();
+    var baseWidth = $('#dropBase').width();
+    var stackWidth = baseWidth;
+    if(baseOffset.left-boxOffset.left > 0){
+      $('#base').append('<div class="droppingBox"></div>');
+      $('.droppingBox').addClass('animateDrop');
+      $('.droppingBox').css('left', boxOffset.left);
+      $('.droppingBox').css('width', stackWidth);
+      stackWidth = baseWidth - (baseOffset.left-boxOffset.left);
+      setTimeout(function() { 
+        $('.droppingBox').remove(); 
+        $('.stackBox').width(stackWidth);
+        $('#dropBase').width(stackWidth);
+        $('.droppingBox').width(stackWidth);
+      }, 1000);
+      
+      if((baseOffset.left-boxOffset.left) > baseWidth){
+        //alert('GAME OVER');
+        $('#base').hide();
+      }else{
+        score = score + (baseWidth - (baseOffset.left-boxOffset.left));  
+        $('.scoreDiv').html(parseInt(score));
+      }
+      console.log('BEFORE score : ', score);
+    }else if(baseOffset.left-boxOffset.left < 0) {
+      $('#base').append('<div class="droppingBox"></div>');
+      $('.droppingBox').addClass('animateDrop');
+      $('.droppingBox').css('left', boxOffset.left);
+      $('.droppingBox').css('width', stackWidth);
+      stackWidth = baseWidth + (baseOffset.left-boxOffset.left);
+      setTimeout(function() {
+       $('.droppingBox').remove(); 
+       $('.stackBox').width(stackWidth);
+       $('#dropBase').width(stackWidth);
+       $('.droppingBox').width(stackWidth);
+     }, 1000);
+      
+      if((baseOffset.left-boxOffset.left) + baseWidth < 0){
+        alert('GAME OVER');
+      }else{
+        score = score + (baseWidth + (baseOffset.left-boxOffset.left));  
+        $('.scoreDiv').html(parseInt(score));
+      }
+      
+      console.log('AFTER score : ', score);
+    }else if(baseOffset.left-boxOffset.left == 0) {
+      console.log('NINJA');
+    }
+  });
+});
+
+  </script>
+  <style type="text/css">
+
+  	#base {
+  width: 100%;
+  height: 50rem;
+  background: #efefef;
+  border: 1px solid #ccc;
+}
+
+.stackBox {
+  width: 5rem;
+  height: 5rem;
+  background: #f00;
+  position: relative;
+  transition: all 0.1s linear;
+}
+
+body {
+  overflow: hidden;
+}
+
+#dropBase {
+  width: 5rem;
+  height: 5rem;
+  background: #000;
+  margin: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: fixed;
+  z-index: 9;
+}
+
+.droppingBox {
+  width: 5rem;
+  height: 5rem;
+  background: #ff0;
+  position: fixed;
+}
+
+.animateDrop {
+  -webkit-animation: drop 1s; /* Chrome, Safari, Opera */ 
+  animation: drop 1s;
+}
+
+/* Chrome, Safari, Opera */ 
+@-webkit-keyframes drop {
+    0%   {top: 10%;}
+    25%  {top: 25%;}
+    50%  {top: 50%;}
+    75%  {top: 75%;}
+    100% {top: 100%; display: none;}
+} 
+
+/* Standard syntax */ 
+@keyframes drop {
+    0%   {top: 10%;}
+    25%  {top: 25%;}
+    50%  {top: 50%;}
+    75%  {top: 75%;}
+    100% {top: 100%; display: none;}
+}
+
+#scoreBlock {
+    display: inline-flex;
+    font-weight: 700;
+}
+
+.scoreDiv {
+    margin-left: 1rem;
+}
+
+
+  </style>
+  </head>
+  <body>
+  <div id="scoreBlock">SCORE : <div class="scoreDiv">0</div></div>
+    <div id="base">
+      <div class="stackBox"></div>
+      
+      <div id="dropBase"></div>
+    </div>  
+    <div id="over">
+      <h3>GAME OVER</h3>
+      <div>Your Score : <div class="scoreDiv">0</div></div>
+    </div>
+  </body>
+</html>
