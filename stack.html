@@ -4,9 +4,71 @@
 
   <script type="text/javascript">
 
+  function hex (c) {
+  var s = "0123456789abcdef";
+  var i = parseInt (c);
+  if (i == 0 || isNaN (c))
+    return "00";
+  i = Math.round (Math.min (Math.max (0, i), 255));
+  return s.charAt ((i - i % 16) / 16) + s.charAt (i % 16);
+}
+
+/* Convert an RGB triplet to a hex string */
+function convertToHex (rgb) {
+  return hex(rgb[0]) + hex(rgb[1]) + hex(rgb[2]);
+}
+
+/* Remove '#' in color hex string */
+function trim (s) { return (s.charAt(0) == '#') ? s.substring(1, 7) : s }
+
+/* Convert a hex string to an RGB triplet */
+function convertToRGB (hex) {
+  var color = [];
+  color[0] = parseInt ((trim(hex)).substring (0, 2), 16);
+  color[1] = parseInt ((trim(hex)).substring (2, 4), 16);
+  color[2] = parseInt ((trim(hex)).substring (4, 6), 16);
+  return color;
+}
+
+function generateColor(colorStart,colorEnd,colorCount){
+
+  // The beginning of your gradient
+  var start = convertToRGB (colorStart);    
+
+  // The end of your gradient
+  var end   = convertToRGB (colorEnd);    
+
+  // The number of colors to compute
+  var len = colorCount;
+
+  //Alpha blending amount
+  var alpha = 0.0;
+
+  var saida = [];
+  
+  for (i = 0; i < len; i++) {
+    var c = [];
+    alpha += (1.0/len);
+    
+    c[0] = start[0] * alpha + (1 - alpha) * end[0];
+    c[1] = start[1] * alpha + (1 - alpha) * end[1];
+    c[2] = start[2] * alpha + (1 - alpha) * end[2];
+
+    saida.push(convertToHex (c));
+    
+  }
+  
+  return saida;
+  
+}
+
+
+var colors = generateColor('#e3f2fd','#1565c0',20);
+
   var score = 0;
-  	
-  	$(document).ready(function() {
+  var count = 0;
+    
+    $(document).ready(function() {
   var ltr = true;
   var rtl = false;
 
@@ -34,11 +96,15 @@
   $('body').click(function() {
     var boxOffset = $('.stackBox').offset();
     var boxWidth = $('.stackBox').width();
-    var baseOffset = $('#dropBase').offset();
-    var baseWidth = $('#dropBase').width();
+    var baseOffset = $('#hiddenBase').offset();
+    var baseWidth = $('#hiddenBase').width();
+    var stackOffset = $('#dropBase').offset();
+    console.log('baseOffset : ', baseOffset);
+    console.log('baseWidth : ', baseWidth);
     var stackWidth = baseWidth;
     if(baseOffset.left-boxOffset.left > 0){
       $('#base').append('<div class="droppingBox"></div>');
+
       $('.droppingBox').addClass('animateDrop');
       $('.droppingBox').css('left', boxOffset.left);
       $('.droppingBox').css('width', stackWidth);
@@ -46,20 +112,23 @@
       setTimeout(function() { 
         $('.droppingBox').remove(); 
         $('.stackBox').width(stackWidth);
-        $('#dropBase').width(stackWidth);
+        $('#hiddenBase').width(stackWidth);
         $('.droppingBox').width(stackWidth);
+        $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+baseOffset.left+'; bottom: '+count+'rem;"></div>');
       }, 1000);
       
       if((baseOffset.left-boxOffset.left) > baseWidth){
         //alert('GAME OVER');
-        $('#base').hide();
+        setTimeout(function() { $('#base').hide(); }, 1000);
       }else{
+        count++;
         score = score + (baseWidth - (baseOffset.left-boxOffset.left));  
         $('.scoreDiv').html(parseInt(score));
       }
       console.log('BEFORE score : ', score);
     }else if(baseOffset.left-boxOffset.left < 0) {
       $('#base').append('<div class="droppingBox"></div>');
+      
       $('.droppingBox').addClass('animateDrop');
       $('.droppingBox').css('left', boxOffset.left);
       $('.droppingBox').css('width', stackWidth);
@@ -67,13 +136,16 @@
       setTimeout(function() {
        $('.droppingBox').remove(); 
        $('.stackBox').width(stackWidth);
-       $('#dropBase').width(stackWidth);
+       $('#hiddenBase').width(stackWidth);
+       $('#hiddenBase').css('left', boxOffset.left);
        $('.droppingBox').width(stackWidth);
+       $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+boxOffset.left+'; bottom: '+count+'rem;"></div>');
      }, 1000);
       
       if((baseOffset.left-boxOffset.left) + baseWidth < 0){
-        alert('GAME OVER');
+        setTimeout(function() { $('#base').hide(); }, 1000);
       }else{
+        count++;
         score = score + (baseWidth + (baseOffset.left-boxOffset.left));  
         $('.scoreDiv').html(parseInt(score));
       }
@@ -88,7 +160,7 @@
   </script>
   <style type="text/css">
 
-  	#base {
+    #base {
   width: 100%;
   height: 50rem;
   background: #efefef;
@@ -97,8 +169,8 @@
 
 .stackBox {
   width: 5rem;
-  height: 5rem;
-  background: #f00;
+  height: 1rem;
+  background: #000;
   position: relative;
   transition: all 0.1s linear;
 }
@@ -109,7 +181,28 @@ body {
 
 #dropBase {
   width: 5rem;
-  height: 5rem;
+  height: 1rem;
+  background: #0d47a1;
+  left: 50%;
+  position: fixed;
+  z-index: 9;
+  bottom: 0;
+}
+
+#hiddenBase {
+  width: 5rem;
+  height: 1rem;
+  background: #000;
+  left: 50%;
+  position: fixed;
+  z-index: 9;
+  bottom: 0;
+  visibility: hidden;
+}
+
+.stacked {
+  width: 5rem;
+  height: 1rem;
   background: #000;
   margin: auto;
   bottom: 0;
@@ -121,8 +214,8 @@ body {
 
 .droppingBox {
   width: 5rem;
-  height: 5rem;
-  background: #ff0;
+  height: 1rem;
+  background: #000;
   position: fixed;
 }
 
@@ -158,6 +251,13 @@ body {
     margin-left: 1rem;
 }
 
+.stackedDiv {
+    height: 1rem;
+    position: fixed;
+    background: #f0f;
+    left: 50%;
+}
+
 
   </style>
   </head>
@@ -166,7 +266,10 @@ body {
     <div id="base">
       <div class="stackBox"></div>
       
-      <div id="dropBase"></div>
+      <div class="baseStack">
+        <div id="dropBase"></div>
+        <div id="hiddenBase"></div>
+      </div>
     </div>  
     <div id="over">
       <h3>GAME OVER</h3>
