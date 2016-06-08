@@ -67,6 +67,7 @@ var colors = generateColor('#e3f2fd','#1565c0',20);
 
   var score = 0;
   var count = 0;
+  var lives = 3;
     
     $(document).ready(function() {
   var ltr = true;
@@ -109,18 +110,24 @@ var colors = generateColor('#e3f2fd','#1565c0',20);
       $('.droppingBox').css('left', boxOffset.left);
       $('.droppingBox').css('width', stackWidth);
       stackWidth = baseWidth - (baseOffset.left-boxOffset.left);
-      setTimeout(function() { 
-        $('.droppingBox').remove(); 
-        $('.stackBox').width(stackWidth);
-        $('#hiddenBase').width(stackWidth);
-        $('.droppingBox').width(stackWidth);
-        $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+baseOffset.left+'; bottom: '+count+'rem;"></div>');
-      }, 1000);
       
       if((baseOffset.left-boxOffset.left) > baseWidth){
         //alert('GAME OVER');
-        setTimeout(function() { $('#base').hide(); }, 1000);
+        lives--;
+        if(lives<=0){
+          setTimeout(function() { $('#base').hide(); }, 1000);  
+        }else{
+          setTimeout(function() { $('.droppingBox').remove(); }, 1000);
+        }
       }else{
+        setTimeout(function() { 
+          $('.droppingBox').remove(); 
+          $('.stackBox').width(stackWidth);
+          $('#hiddenBase').width(stackWidth);
+          $('.droppingBox').width(stackWidth);
+          $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+baseOffset.left+'; bottom: '+count+'rem;"></div>');
+        }, 1000);
+
         count++;
         score = score + (baseWidth - (baseOffset.left-boxOffset.left));  
         $('.scoreDiv').html(parseInt(score));
@@ -133,18 +140,24 @@ var colors = generateColor('#e3f2fd','#1565c0',20);
       $('.droppingBox').css('left', boxOffset.left);
       $('.droppingBox').css('width', stackWidth);
       stackWidth = baseWidth + (baseOffset.left-boxOffset.left);
-      setTimeout(function() {
-       $('.droppingBox').remove(); 
-       $('.stackBox').width(stackWidth);
-       $('#hiddenBase').width(stackWidth);
-       $('#hiddenBase').css('left', boxOffset.left);
-       $('.droppingBox').width(stackWidth);
-       $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+boxOffset.left+'; bottom: '+count+'rem;"></div>');
-     }, 1000);
       
       if((baseOffset.left-boxOffset.left) + baseWidth < 0){
-        setTimeout(function() { $('#base').hide(); }, 1000);
+        lives--;
+        if(lives<=0){
+          setTimeout(function() { $('#base').hide(); }, 1000);  
+        }else{
+          setTimeout(function() { $('.droppingBox').remove(); }, 1000);
+        }
       }else{
+        setTimeout(function() {
+         $('.droppingBox').remove(); 
+         $('.stackBox').width(stackWidth);
+         $('#hiddenBase').width(stackWidth);
+         $('#hiddenBase').css('left', boxOffset.left);
+         $('.droppingBox').width(stackWidth);
+         $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+boxOffset.left+'; bottom: '+count+'rem;"></div>');
+       }, 1000);
+
         count++;
         score = score + (baseWidth + (baseOffset.left-boxOffset.left));  
         $('.scoreDiv').html(parseInt(score));
@@ -262,6 +275,9 @@ body {
   </style>
   </head>
   <body>
+  <div id="heartsDiv">
+    
+  </div>
   <div id="scoreBlock">SCORE : <div class="scoreDiv">0</div></div>
     <div id="base">
       <div class="stackBox"></div>
