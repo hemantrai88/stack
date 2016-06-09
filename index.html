@@ -64,8 +64,12 @@ function generateColor(colorStart,colorEnd,colorCount){
   
 }
 
+var colorRanges = [{start: '#e3f2fd', stop: '#1565c0'}, {start: '#52c234', stop: '#061700'}, {start: '#C9FFBF', stop: '#FFAFBD'}, {start: '#649173', stop: '#DBD5A4'}, {start: '#B993D6', stop: '#8CA6DB'}, {start: '#870000', stop: '#190A05'}, {start: '#00d2ff', stop: '#3a7bd5'}, {start: '#D3959B', stop: '#BFE6BA'}, {start: '#E6DADA', stop: '#274046'}, {start: '#ddd6f3', stop: '#faaca8'}];
 
-var colors = generateColor('#e3f2fd','#1565c0',20);
+var colorsObj = colorRanges[Math.floor(Math.random()*colorRanges.length)];
+console.log(colorsObj.start, colorsObj.stop);
+setTimeout(function() { $('#dropBase').css('background', colorsObj.start); $('.stackBox').css('background', colorsObj.start); }, 1000);
+var colors = generateColor(colorsObj.stop,colorsObj.start,20);
 
   var score = 0;
   var count = 0;
@@ -80,14 +84,14 @@ var colors = generateColor('#e3f2fd','#1565c0',20);
     var baseWidth = $('#base').width();
     
     if(ltr) {
-      if(offSet.left < baseWidth) {
+      if(offSet.left < (baseWidth*0.75)) {
         $('.stackBox').css('left', offSet.left+50);
       }else{
         ltr = false;
         rtl = true;
       }  
     }else if(rtl){
-      if(offSet.left > 0) {
+      if(offSet.left > (baseWidth*0.25)) {
         $('.stackBox').css('left', offSet.left-50);
       }else{
         rtl = false;
@@ -127,6 +131,7 @@ var colors = generateColor('#e3f2fd','#1565c0',20);
           $('.droppingBox').remove(); 
           $('.stackBox').width(stackWidth);
           $('.stackBox').css('bottom', (count+2)+'rem');
+          $('.stackBox').css('background', colors[count]);
           $('#hiddenBase').width(stackWidth);
           $('.droppingBox').width(stackWidth);
           $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+baseOffset.left+'; bottom: '+(count+1)+'rem;"></div>');
@@ -158,6 +163,7 @@ var colors = generateColor('#e3f2fd','#1565c0',20);
          $('.droppingBox').remove(); 
          $('.stackBox').width(stackWidth);
          $('.stackBox').css('bottom', (count+2)+'rem');
+         $('.stackBox').css('background', colors[count]);
          $('#hiddenBase').width(stackWidth);
          $('#hiddenBase').css('left', boxOffset.left);
          $('.droppingBox').width(stackWidth);
@@ -187,9 +193,9 @@ var colors = generateColor('#e3f2fd','#1565c0',20);
 }
 
 .stackBox {
-  width: 10rem;
+  width: 20rem;
   height: 1rem;
-  background: #000;
+  background: #fff;
   position: absolute;
   transition: all 0.1s linear;
   bottom: 1rem;
@@ -200,9 +206,9 @@ body {
 }
 
 #dropBase {
-  width: 10rem;
+  width: 20rem;
   height: 1rem;
-  background: #0d47a1;
+  background: #fff;
   left: 50%;
   position: fixed;
   z-index: 9;
@@ -210,9 +216,9 @@ body {
 }
 
 #hiddenBase {
-  width: 10rem;
+  width: 20rem;
   height: 1rem;
-  background: #000;
+  background: #fff;
   left: 50%;
   position: fixed;
   z-index: 9;
@@ -221,9 +227,9 @@ body {
 }
 
 .stacked {
-  width: 10rem;
+  width: 20rem;
   height: 1rem;
-  background: #000;
+  background: #fff;
   margin: auto;
   bottom: 0;
   left: 0;
@@ -233,7 +239,7 @@ body {
 }
 
 .droppingBox {
-  width: 10rem;
+  width: 20rem;
   height: 1rem;
   background: #000;
   position: fixed;
