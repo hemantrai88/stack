@@ -149,6 +149,7 @@ $(document).ready(function() {
           $('#hiddenBase').width(stackWidth);
           $('.droppingBox').width(stackWidth);
           $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+baseOffset.left+'; bottom: '+(count+1)+'rem; border: 1px solid #fff; box-shadow: 2px 0px 5px 0px rgba(51,51,51,1);"></div>');
+          $('.stackBox').css('background', colors[count]);
         //}, 1000);
 
         count++;
@@ -187,6 +188,7 @@ $(document).ready(function() {
          $('#hiddenBase').css('left', boxOffset.left);
          $('.droppingBox').width(stackWidth);
          $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+boxOffset.left+'; bottom: '+(count+1)+'rem; border: 1px solid #fff; box-shadow: 2px 0px 5px 0px rgba(51,51,51,1);"></div>');
+         $('.stackBox').css('background', colors[count]);
        //}, 1000);
 
         count++;
@@ -204,7 +206,8 @@ $(document).ready(function() {
   <style type="text/css">
 
   body {
-    background: url(assets/images/bg.png);
+    background: url(assets/images/bg.png) no-repeat center center fixed;
+    background-size: cover;
   }
 
     #base {
