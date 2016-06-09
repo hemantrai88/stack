@@ -67,19 +67,19 @@ function generateColor(colorStart,colorEnd,colorCount){
 var colorRanges = [{start: '#e3f2fd', stop: '#1565c0'}, {start: '#52c234', stop: '#061700'}, {start: '#C9FFBF', stop: '#FFAFBD'}, {start: '#649173', stop: '#DBD5A4'}, {start: '#B993D6', stop: '#8CA6DB'}, {start: '#870000', stop: '#190A05'}, {start: '#00d2ff', stop: '#3a7bd5'}, {start: '#D3959B', stop: '#BFE6BA'}, {start: '#E6DADA', stop: '#274046'}, {start: '#ddd6f3', stop: '#faaca8'}];
 
 var colorsObj = colorRanges[Math.floor(Math.random()*colorRanges.length)];
-console.log(colorsObj.start, colorsObj.stop);
 setTimeout(function() { $('#dropBase').css('background', colorsObj.start); $('.stackBox').css('background', colorsObj.start); }, 1000);
 var colors = generateColor(colorsObj.stop,colorsObj.start,20);
 
   var score = 0;
   var count = 0;
   var lives = 3;
+  var pendulum;
     
-    $(document).ready(function() {
+$(document).ready(function() {
   var ltr = true;
   var rtl = false;
 
-  setInterval(function() {
+  pendulum = setInterval(function() {
     var offSet = $('.stackBox').offset();
     var baseWidth = $('#base').width();
     
@@ -99,15 +99,24 @@ var colors = generateColor(colorsObj.stop,colorsObj.start,20);
       }
     }
   }, 100);
+
+  $('body').focus();
   
   $('body').click(function() {
+    stackItUp();
+  });
+
+  $('body').keypress(function() {
+    if (event.which == 32) stackItUp();
+  });
+});
+
+    function stackItUp() {
     var boxOffset = $('.stackBox').offset();
     var boxWidth = $('.stackBox').width();
     var baseOffset = $('#hiddenBase').offset();
     var baseWidth = $('#hiddenBase').width();
     var stackOffset = $('#dropBase').offset();
-    console.log('baseOffset : ', baseOffset);
-    console.log('baseWidth : ', baseWidth);
     var stackWidth = baseWidth;
     if(baseOffset.left-boxOffset.left > 0){
       $('#base').append('<div class="droppingBox"></div>');
@@ -122,7 +131,12 @@ var colors = generateColor(colorsObj.stop,colorsObj.start,20);
         $('#life_'+lives).remove();
         lives--;
         if(lives<=0){
-          $('#base').hide();  
+          //$('#base').hide();
+          $('.droppingBox').remove();
+          $('.stackBox').remove();  
+          $('#scoreBlock').hide();
+          $('#over').show();
+          clearInterval(pendulum);
         }else{
           $('.droppingBox').remove();
         }
@@ -134,7 +148,7 @@ var colors = generateColor(colorsObj.stop,colorsObj.start,20);
           $('.stackBox').css('background', colors[count]);
           $('#hiddenBase').width(stackWidth);
           $('.droppingBox').width(stackWidth);
-          $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+baseOffset.left+'; bottom: '+(count+1)+'rem;"></div>');
+          $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+baseOffset.left+'; bottom: '+(count+1)+'rem; border: 1px solid #fff; box-shadow: 2px 0px 5px 0px rgba(51,51,51,1);"></div>');
         //}, 1000);
 
         count++;
@@ -154,7 +168,12 @@ var colors = generateColor(colorsObj.stop,colorsObj.start,20);
         $('#life_'+lives).remove();
         lives--;
         if(lives<=0){
-          $('#base').hide(); 
+          //$('#base').hide();
+          $('.droppingBox').remove();
+          $('.stackBox').remove();
+          $('#scoreBlock').hide();
+          $('#over').show(); 
+          clearInterval(pendulum);
         }else{
           $('.droppingBox').remove();
         }
@@ -167,7 +186,7 @@ var colors = generateColor(colorsObj.stop,colorsObj.start,20);
          $('#hiddenBase').width(stackWidth);
          $('#hiddenBase').css('left', boxOffset.left);
          $('.droppingBox').width(stackWidth);
-         $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+boxOffset.left+'; bottom: '+(count+1)+'rem;"></div>');
+         $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+boxOffset.left+'; bottom: '+(count+1)+'rem; border: 1px solid #fff; box-shadow: 2px 0px 5px 0px rgba(51,51,51,1);"></div>');
        //}, 1000);
 
         count++;
@@ -179,11 +198,14 @@ var colors = generateColor(colorsObj.stop,colorsObj.start,20);
     }else if(baseOffset.left-boxOffset.left == 0) {
       console.log('NINJA');
     }
-  });
-});
+    }
 
   </script>
   <style type="text/css">
+
+  body {
+    background: url(assets/images/bg.png);
+  }
 
     #base {
   width: 100%;
@@ -197,6 +219,7 @@ var colors = generateColor(colorsObj.stop,colorsObj.start,20);
   position: absolute;
   transition: all 0.1s linear;
   bottom: 1rem;
+  border: 1px solid #fff;
 }
 
 body {
@@ -211,6 +234,8 @@ body {
   position: fixed;
   z-index: 9;
   bottom: 0;
+  border: 1px solid #fff;
+  box-shadow: 2px 0px 5px 0px rgba(51,51,51,1);
 }
 
 #hiddenBase {
@@ -234,6 +259,8 @@ body {
   right: 0;
   position: fixed;
   z-index: 9;
+  border: 1px solid #fff;
+  box-shadow: 2px 0px 5px 0px rgba(51,51,51,1);
 }
 
 .droppingBox {
@@ -291,6 +318,19 @@ body {
   display: inline-block;
 }
 
+#over {
+  display: none;
+  text-align: center;
+}
+
+#gameOver {
+  font-size: 5rem
+}
+
+#scoreWrapper {
+  font-size: 3rem;
+  display: inline-flex;
+}
 
   </style>
   </head>
@@ -300,6 +340,10 @@ body {
       <i class="fa fa-heart lives" id="life_2" aria-hidden="true"></i>
       <i class="fa fa-heart lives" id="life_3" aria-hidden="true"></i>
   </div>
+  <div id="over">
+      <div id="gameOver">GAME OVER</div>
+      <div id="scoreWrapper">Your Score : <div class="scoreDiv">0</div></div>
+    </div>
   <div id="scoreBlock">SCORE : <div class="scoreDiv">0</div></div>
     <div id="base">
       <div class="stackBox"></div>
@@ -309,9 +353,6 @@ body {
         <div id="hiddenBase"></div>
       </div>
     </div>  
-    <div id="over">
-      <h3>GAME OVER</h3>
-      <div>Your Score : <div class="scoreDiv">0</div></div>
-    </div>
+    
   </body>
 </html>
