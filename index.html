@@ -2,9 +2,176 @@
   <head>
   <script   src="https://code.jquery.com/jquery-2.2.4.min.js"   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="   crossorigin="anonymous"></script>
 
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+
   <script src="https://use.fontawesome.com/044ed1e2fe.js"></script>
 
   <script type="text/javascript">
+
+  var stacked = angular.module('stacked',[]);
+
+  stacked.controller('stackedCtrl', ['$scope', function($scope) {
+    
+    $scope.colorRanges = [{start: '#e3f2fd', stop: '#1565c0'}, {start: '#52c234', stop: '#061700'}, {start: '#C9FFBF', stop: '#FFAFBD'}, {start: '#649173', stop: '#DBD5A4'}, {start: '#B993D6', stop: '#8CA6DB'}, {start: '#870000', stop: '#190A05'}, {start: '#00d2ff', stop: '#3a7bd5'}, {start: '#D3959B', stop: '#BFE6BA'}, {start: '#E6DADA', stop: '#274046'}, {start: '#ddd6f3', stop: '#faaca8'}];
+
+    $scope.colorsObj = $scope.colorRanges[Math.floor(Math.random()*$scope.colorRanges.length)];
+    
+    setTimeout(function() { $('#dropBase').css('background', $scope.colorsObj.start); $('.stackBox').css('background', $scope.colorsObj.start); }, 1000);
+    
+    $scope.colors = generateColor($scope.colorsObj.stop,$scope.colorsObj.start,20);
+
+    $scope.score = 0;
+    $scope.count = 0;
+    $scope.lives = 3;
+    $scope.pendulum;
+    $scope.player = 'FOO';
+    $scope.scoresFromDB;  
+    
+    angular.element(document).ready(function () {
+
+      var name = prompt("Please enter your name", "");
+      $scope.$apply(function() {
+        $scope.player = name;  
+      });
+
+      $.get( "http://view-count.herokuapp.com/get/hr88StackedScores", function( data ) {
+        $scope.$apply(function() {
+          $scope.scoresFromDB = JSON.parse(data);  
+        });
+      });
+
+      $scope.ltr = true;
+      $scope.rtl = false;
+
+      $scope.pendulum = setInterval(function() {
+        var offSet = $('.stackBox').offset();
+        var baseWidth = $('#base').width();
+        
+        if($scope.ltr) {
+          if(offSet.left < (baseWidth*0.75)) {
+            $('.stackBox').css('left', offSet.left+50);
+          }else{
+            $scope.ltr = false;
+            $scope.rtl = true;
+          }  
+        }else if($scope.rtl){
+          if(offSet.left > (baseWidth*0.25)) {
+            $('.stackBox').css('left', offSet.left-50);
+          }else{
+            $scope.rtl = false;
+            $scope.ltr = true;
+          }
+        }
+      }, 100);
+
+      $('body').focus();
+      
+      $('body').click(function() {
+        $scope.stackItUp();
+      });
+
+      $('body').keypress(function() {
+        if (event.which == 32) $scope.stackItUp();
+      });
+    });
+
+    $scope.stackItUp = function() {
+        var boxOffset = $('.stackBox').offset();
+        var boxWidth = $('.stackBox').width();
+        var baseOffset = $('#hiddenBase').offset();
+        var baseWidth = $('#hiddenBase').width();
+        var stackOffset = $('#dropBase').offset();
+        var stackWidth = baseWidth;
+        if(baseOffset.left-boxOffset.left > 0){
+          $('#base').append('<div class="droppingBox"></div>');
+
+          $('.droppingBox').addClass('animateDrop');
+          $('.droppingBox').css('left', boxOffset.left);
+          $('.droppingBox').css('width', stackWidth);
+          stackWidth = baseWidth - (baseOffset.left-boxOffset.left);
+          
+          if((baseOffset.left-boxOffset.left) > baseWidth){
+            //alert('GAME OVER');
+            $('#life_'+$scope.lives).remove();
+            $scope.lives--;
+            if($scope.lives<=0){
+              //$('#base').hide();
+              $('.droppingBox').remove();
+              $('.stackBox').remove();  
+              $('#scoreBlock').hide();
+              $('#over').show();
+              clearInterval($scope.pendulum);
+            }else{
+              $('.droppingBox').remove();
+            }
+          }else{
+              $('.droppingBox').remove(); 
+              $('.stackBox').width(stackWidth);
+              $('.stackBox').css('bottom', ($scope.count+2)+'rem');
+              $('.stackBox').css('background', $scope.colors[$scope.count]);
+              $('#hiddenBase').width(stackWidth);
+              $('.droppingBox').width(stackWidth);
+              $('.baseStack').append('<div class="stackedDiv" style="background: #'+$scope.colors[$scope.count]+' !important; width:'+stackWidth+'; left: '+baseOffset.left+'; bottom: '+($scope.count+1)+'rem; border: 1px solid #fff; box-shadow: 2px 0px 5px 0px rgba(51,51,51,1);"></div>');
+              $('.stackBox').css('background', $scope.colors[$scope.count]);
+
+            $scope.count++;
+            $scope.score = $scope.score + (baseWidth - (baseOffset.left-boxOffset.left));  
+            $('.scoreDiv').html(parseInt($scope.score));
+          }
+        }else if(baseOffset.left-boxOffset.left < 0) {
+          $('#base').append('<div class="droppingBox"></div>');
+          
+          $('.droppingBox').addClass('animateDrop');
+          $('.droppingBox').css('left', boxOffset.left);
+          $('.droppingBox').css('width', stackWidth);
+          stackWidth = baseWidth + (baseOffset.left-boxOffset.left);
+          
+          if((baseOffset.left-boxOffset.left) + baseWidth < 0){
+            $('#life_'+$scope.lives).remove();
+            $scope.lives--;
+            if($scope.lives<=0){
+              //$('#base').hide();
+              $('.droppingBox').remove();
+              $('.stackBox').remove();
+              $('#scoreBlock').hide();
+              $('#over').show(); 
+              var params = 'hr88StackedScores?[]'
+              $.get( "http://view-count.herokuapp.com/get/hr88StackedScores", function( data ) {
+                data = JSON.parse(data);
+                var p = $scope.player;
+                var s = $scope.score;
+                var scoreObj = {p, s};
+                data.push(scoreObj);
+                data = JSON.stringify(data);
+                $.get("http://view-count.herokuapp.com/set/hr88StackedScores?"+data, function(resp) {
+                  console.log('resp : ', resp);
+                });
+              });
+              $scope.clearInterval($scope.pendulum);
+            }else{
+              $('.droppingBox').remove();
+            }
+          }else{
+             $('.droppingBox').remove(); 
+             $('.stackBox').width(stackWidth);
+             $('.stackBox').css('bottom', ($scope.count+2)+'rem');
+             $('.stackBox').css('background', $scope.colors[$scope.count]);
+             $('#hiddenBase').width(stackWidth);
+             $('#hiddenBase').css('left', boxOffset.left);
+             $('.droppingBox').width(stackWidth);
+             $('.baseStack').append('<div class="stackedDiv" style="background: #'+$scope.colors[$scope.count]+' !important; width:'+stackWidth+'; left: '+boxOffset.left+'; bottom: '+($scope.count+1)+'rem; border: 1px solid #fff; box-shadow: 2px 0px 5px 0px rgba(51,51,51,1);"></div>');
+             $('.stackBox').css('background', $scope.colors[$scope.count]);
+
+            $scope.count++;
+            $scope.score = $scope.score + (baseWidth + (baseOffset.left-boxOffset.left));  
+            $('.scoreDiv').html(parseInt($scope.score));
+          }          
+        }else if(baseOffset.left-boxOffset.left == 0) {
+          console.log('NINJA');
+        }
+        }
+
+  }]);
 
   function hex (c) {
   var s = "0123456789abcdef";
@@ -64,143 +231,7 @@ function generateColor(colorStart,colorEnd,colorCount){
   
 }
 
-var colorRanges = [{start: '#e3f2fd', stop: '#1565c0'}, {start: '#52c234', stop: '#061700'}, {start: '#C9FFBF', stop: '#FFAFBD'}, {start: '#649173', stop: '#DBD5A4'}, {start: '#B993D6', stop: '#8CA6DB'}, {start: '#870000', stop: '#190A05'}, {start: '#00d2ff', stop: '#3a7bd5'}, {start: '#D3959B', stop: '#BFE6BA'}, {start: '#E6DADA', stop: '#274046'}, {start: '#ddd6f3', stop: '#faaca8'}];
 
-var colorsObj = colorRanges[Math.floor(Math.random()*colorRanges.length)];
-setTimeout(function() { $('#dropBase').css('background', colorsObj.start); $('.stackBox').css('background', colorsObj.start); }, 1000);
-var colors = generateColor(colorsObj.stop,colorsObj.start,20);
-
-  var score = 0;
-  var count = 0;
-  var lives = 3;
-  var pendulum;
-    
-$(document).ready(function() {
-  var ltr = true;
-  var rtl = false;
-
-  pendulum = setInterval(function() {
-    var offSet = $('.stackBox').offset();
-    var baseWidth = $('#base').width();
-    
-    if(ltr) {
-      if(offSet.left < (baseWidth*0.75)) {
-        $('.stackBox').css('left', offSet.left+50);
-      }else{
-        ltr = false;
-        rtl = true;
-      }  
-    }else if(rtl){
-      if(offSet.left > (baseWidth*0.25)) {
-        $('.stackBox').css('left', offSet.left-50);
-      }else{
-        rtl = false;
-        ltr = true;
-      }
-    }
-  }, 100);
-
-  $('body').focus();
-  
-  $('body').click(function() {
-    stackItUp();
-  });
-
-  $('body').keypress(function() {
-    if (event.which == 32) stackItUp();
-  });
-});
-
-    function stackItUp() {
-    var boxOffset = $('.stackBox').offset();
-    var boxWidth = $('.stackBox').width();
-    var baseOffset = $('#hiddenBase').offset();
-    var baseWidth = $('#hiddenBase').width();
-    var stackOffset = $('#dropBase').offset();
-    var stackWidth = baseWidth;
-    if(baseOffset.left-boxOffset.left > 0){
-      $('#base').append('<div class="droppingBox"></div>');
-
-      $('.droppingBox').addClass('animateDrop');
-      $('.droppingBox').css('left', boxOffset.left);
-      $('.droppingBox').css('width', stackWidth);
-      stackWidth = baseWidth - (baseOffset.left-boxOffset.left);
-      
-      if((baseOffset.left-boxOffset.left) > baseWidth){
-        //alert('GAME OVER');
-        $('#life_'+lives).remove();
-        lives--;
-        if(lives<=0){
-          //$('#base').hide();
-          $('.droppingBox').remove();
-          $('.stackBox').remove();  
-          $('#scoreBlock').hide();
-          $('#over').show();
-          clearInterval(pendulum);
-        }else{
-          $('.droppingBox').remove();
-        }
-      }else{
-        //setTimeout(function() { 
-          $('.droppingBox').remove(); 
-          $('.stackBox').width(stackWidth);
-          $('.stackBox').css('bottom', (count+2)+'rem');
-          $('.stackBox').css('background', colors[count]);
-          $('#hiddenBase').width(stackWidth);
-          $('.droppingBox').width(stackWidth);
-          $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+baseOffset.left+'; bottom: '+(count+1)+'rem; border: 1px solid #fff; box-shadow: 2px 0px 5px 0px rgba(51,51,51,1);"></div>');
-          $('.stackBox').css('background', colors[count]);
-        //}, 1000);
-
-        count++;
-        score = score + (baseWidth - (baseOffset.left-boxOffset.left));  
-        $('.scoreDiv').html(parseInt(score));
-      }
-      console.log('BEFORE score : ', score);
-    }else if(baseOffset.left-boxOffset.left < 0) {
-      $('#base').append('<div class="droppingBox"></div>');
-      
-      $('.droppingBox').addClass('animateDrop');
-      $('.droppingBox').css('left', boxOffset.left);
-      $('.droppingBox').css('width', stackWidth);
-      stackWidth = baseWidth + (baseOffset.left-boxOffset.left);
-      
-      if((baseOffset.left-boxOffset.left) + baseWidth < 0){
-        $('#life_'+lives).remove();
-        lives--;
-        if(lives<=0){
-          //$('#base').hide();
-          $('.droppingBox').remove();
-          $('.stackBox').remove();
-          $('#scoreBlock').hide();
-          $('#over').show(); 
-          clearInterval(pendulum);
-        }else{
-          $('.droppingBox').remove();
-        }
-      }else{
-        //setTimeout(function() {
-         $('.droppingBox').remove(); 
-         $('.stackBox').width(stackWidth);
-         $('.stackBox').css('bottom', (count+2)+'rem');
-         $('.stackBox').css('background', colors[count]);
-         $('#hiddenBase').width(stackWidth);
-         $('#hiddenBase').css('left', boxOffset.left);
-         $('.droppingBox').width(stackWidth);
-         $('.baseStack').append('<div class="stackedDiv" style="background: #'+colors[count]+' !important; width:'+stackWidth+'; left: '+boxOffset.left+'; bottom: '+(count+1)+'rem; border: 1px solid #fff; box-shadow: 2px 0px 5px 0px rgba(51,51,51,1);"></div>');
-         $('.stackBox').css('background', colors[count]);
-       //}, 1000);
-
-        count++;
-        score = score + (baseWidth + (baseOffset.left-boxOffset.left));  
-        $('.scoreDiv').html(parseInt(score));
-      }
-      
-      console.log('AFTER score : ', score);
-    }else if(baseOffset.left-boxOffset.left == 0) {
-      console.log('NINJA');
-    }
-    }
 
   </script>
   <style type="text/css">
@@ -337,7 +368,7 @@ body {
 
   </style>
   </head>
-  <body>
+  <body ng-app="stacked" ng-controller="stackedCtrl">
   <div id="heartsDiv">
       <i class="fa fa-heart lives" id="life_1" aria-hidden="true"></i>
       <i class="fa fa-heart lives" id="life_2" aria-hidden="true"></i>
@@ -347,7 +378,10 @@ body {
       <div id="gameOver">GAME OVER</div>
       <div id="scoreWrapper">Your Score : <div class="scoreDiv">0</div></div>
     </div>
-  <div id="scoreBlock">SCORE : <div class="scoreDiv">0</div></div>
+    <div class="scoreList" ng-repeat=" score in scoresFromDB">
+      {{ score }}
+    </div>
+  <div id="scoreBlock"> {{ player}} | SCORE : <div class="scoreDiv">0</div></div>
     <div id="base">
       <div class="stackBox"></div>
       
